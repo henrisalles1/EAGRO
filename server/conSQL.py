@@ -24,7 +24,7 @@ def insert_property(id: str, nome_prop: str, user_doc: str, cep: str, numero: st
     cursor.execute(command)
 
 
-def select_last_property_id():
+def select_last_property_id() -> str:
     x = pd.read_sql('''SELECT TOP(1) ID FROM Propertys_ ORDER BY ID DESC;''', conexao)
     y = x['ID']
     id = y.get(0)
@@ -35,3 +35,34 @@ def delete_property(id):
     command = f"""DELETE FROM Propertys_ WHERE ID = '{id}';"""
     cursor.execute(command)
 
+
+def puxa_senha_sql(email: str) -> str:
+    email = email.lower()
+    try:
+        x = pd.read_sql(f"""SELECT * FROM Users_ WHERE EMAIL = '{email}';""", conexao)
+    except Exception:
+        return 'emailincorreto'
+    senha_sql = str(x['PASSWORD'][0])
+    return senha_sql
+
+
+def doc_ja_cadastrado(doc: str) -> bool:
+    x = pd.read_sql(f"""SELECT * FROM Users_ WHERE DOC = '{doc}';""", conexao)
+    try:
+        if doc == str(x['DOC'][0]):
+            return True
+        else:
+            return False
+    except KeyError:
+        return False
+
+
+def email_ja_cadastrado(email: str) -> bool:
+    x = pd.read_sql(f"""SELECT * FROM Users_ WHERE DOC = '{email}';""", conexao)
+    try:
+        if email == str(x['EMAIL'][0]):
+            return True
+        else:
+            return False
+    except KeyError:
+        return False

@@ -1,6 +1,4 @@
-from Register.User import User
-from conSQL import insert_property, cursor
-from Register.Property import Property
+from server.Register.Property import Property
 
 
 nome = 'henrique'

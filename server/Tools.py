@@ -1,7 +1,7 @@
 import re
 
 
-def digitos_iguais(x: str):
+def digitos_iguais(x: str) -> bool:
     d = []
     for i in range(len(x)):
         d.append(x[i])
@@ -11,43 +11,43 @@ def digitos_iguais(x: str):
             return True
 
 
-def f_nome(x: str):
+def f_nome(x: str) -> (str, bool):
     if x.isalpha():
         x = x.title()
-        return x
+        return x, True
     else:
-        raise ValueError('Aceitos nomes apenas compostos por letras')
+        return None, False
 
 
-def f_email(email: str):
+def f_email(email: str) -> (str, bool):
     padrao = re.search(r'[a-zA-Z0-9_.-]+@[a-zA-Z0-9]+\.[a-zA-Z]{1,3}(.[\w]{2,4})?$', email)
     if padrao:
-        return email
+        return email, True
     else:
-        raise ValueError('Email incorreto !')
+        return email, False
 
 
-def f_senha(s):
+def f_senha(s) -> (str, str):
     if 8 <= len(s) <= 30:
         if s.islower():
-            raise ValueError('A senha deve ter aomenos uma letra maiúscula !')
+            return None, 'upper'
         elif not re.search('[0-9]', s):
-            raise ValueError('A senha deve ter ao menos um número !')
+            return None, 'number'
         elif s.isalnum():
-            raise ValueError('A senha deve ter ao menos um carcter especial !')
+            return None, 'special'
         else:
-            return s
+            return s, 'pass'
     else:
-        raise ValueError('A senha deve ter entre 8 a 30 caracteres !')
+        return None, 'limit'
 
 
-def f_telefone(t):
-    t = re.sub('[()+-]','', t)
+def f_telefone(t) -> (str, bool):
+    t = re.sub('[()+-]', '', t)
     padrao_telefone = re.compile('([+][0-9]{2})?([(][0-9]{2}[)])|([0-9]{2})[0-9]{5}[-]?[0-9]{4}')
     if re.search(padrao_telefone, t):
-        return t
+        return t, True
     else:
-        raise ValueError('Número de telefone incorreto !')
+        return None, False
 
 
 def format_telefone(t):

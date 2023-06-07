@@ -1,5 +1,5 @@
 import re
-from Tools import digitos_iguais
+from server.Tools import digitos_iguais
 
 
 def valida_doc(doc: str):
@@ -7,13 +7,17 @@ def valida_doc(doc: str):
     if len(doc) == 11:
         tipo_pessoa = 'PF'
         if cpf_valido(doc):
-            return doc, tipo_pessoa
+            return doc, tipo_pessoa, True
+        else:
+            return None, None, False
     elif len(doc) == 14:
         tipo_pessoa = 'PJ'
         if cnpj_valido(doc):
-            return doc, tipo_pessoa
+            return doc, tipo_pessoa, True
+        else:
+            return None, None, False
     else:
-        raise ValueError('Documento não segue os padrões Nacionais (CPF/CNPJ)')
+        return None, None, False
 
 
 def limpa_doc(doc):
@@ -22,20 +26,14 @@ def limpa_doc(doc):
 
 
 # --------------- CPF ---------------
-def cpf_valido(cpf):
+def cpf_valido(cpf) -> bool:
     if valida_p_soma_cpf(cpf):
         if valida_primeiro_digito_cpf(cpf):
             if valida_segundo_digito_cpf(cpf):
                 if digitos_iguais(cpf):
-                    raise ValueError('CPF inválido ! "Queda por digitos iguais"')
+                    return False
                 else:
-                    return cpf
-            else:
-                raise ValueError('CPF inválido ! "Queda por segundo digito validador"')
-        else:
-            raise ValueError('CPF inválido ! "Queda por primeiro digito validador"')
-    else:
-        raise ValueError('CPF inválido ! "Queda por soma de digitos !')
+                    return True
 
 
 def valida_p_soma_cpf(cpf):
@@ -95,13 +93,9 @@ def cnpj_valido(cnpj):
     if primeiro_digito_cnpj(cnpj):
         if segundo_digito_cnpj(cnpj):
             if digitos_iguais(cnpj):
-                raise ValueError('CNPJ inválido "Queda por digitos iguais"')
+                return False
             else:
-                return cnpj
-        else:
-            raise ValueError('CNPJ inválido "Queda por segundo digito verificcador"')
-    else:
-        raise ValueError('CNPJ inválido "Queda por primeiro digito verificador"')
+                return True
 
 
 def primeiro_digito_cnpj(cnpj):

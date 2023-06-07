@@ -1,5 +1,5 @@
-from Tools import valida_cep
-from conSQL import insert_property, select_last_property_id, delete_property, cursor
+from server.Tools import valida_cep
+from server.conSQL import insert_property, select_last_property_id, delete_property, cursor
 
 
 def create_property_id():
