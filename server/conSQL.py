@@ -115,13 +115,18 @@ def puxa_relatorio_mensal(id: str, prod: str, geral: bool) -> list:
     return relatorio
 
 
-def puxa_doc_user(email: str, senha: str):
+def puxa_user(email: str, senha: str):
     email = email.lower()
     x = pd.read_sql(f"""SELECT * FROM Users_ WHERE EMAIL = '{email}' AND PASSWORD = '{senha}';""", conexao)
-    return x['DOC'][0]
+    return x.DOC[0], x.NOME[0], x.EMAIL[0], x.PASSWORD[0], x.TELEFONE[0], x.TIPO_PESSOA[0]
 
 
-def puxa_propertys(user_doc: str) -> list:
+def puxa_propertys(user_doc: str) -> iter:
+    x = pd.read_sql(f"""SELECT * FROM Propertys_ WHERE USER_DOC = '{user_doc}';""", conexao)
+    return x
+
+
+def puxa_propertys_id(user_doc: str) -> list:
     x = pd.read_sql(f"""SELECT ID FROM Propertys_ WHERE USER_DOC = '{user_doc}';""", conexao)
     return list(x['ID'])
 

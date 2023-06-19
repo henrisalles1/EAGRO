@@ -4,6 +4,7 @@ from server.conSQL import puxa_relatorio_mensal_user, puxa_relatorio_mensal
 
 def graph_linha_temporal_estoque(typ: str, key: str, ax, nome, cor, bkg):
     stock_geral = False
+    sem_estoque = False
     # -- Seleciona produto --
     if nome == 'all':
         stock_geral = True
@@ -36,8 +37,11 @@ def graph_linha_temporal_estoque(typ: str, key: str, ax, nome, cor, bkg):
                 from client.Tools import escolhe_cor
                 cor = escolhe_cor(str(column))
                 x = df[['MES', column]].groupby('MES').sum()
-                graph = x.plot(kind='line', ax=ax, color=cor, marker='o', fontsize=15, legend=True)
-                graph.legend(facecolor=bkg, frameon=False, labelcolor='#FFFFFF', fontsize=15)
+                try:
+                    graph = x.plot(kind='line', ax=ax, color=cor, marker='o', fontsize=15, legend=True)
+                    graph.legend(facecolor=bkg, frameon=False, labelcolor='#FFFFFF', fontsize=15)
+                except:
+                    sem_estoque = True
 
     else:
         df = df[['MES', name_sql]].groupby('MES').sum()
@@ -51,8 +55,6 @@ def graph_linha_temporal_estoque(typ: str, key: str, ax, nome, cor, bkg):
         if type(v) == str:
             pass
         else:
-            print(v)
             if v >= max:
                 max = v
-
     return max

@@ -9,6 +9,8 @@ def create_property_id():
     d = []
     z = []
     ultimo_id = select_last_property_id()
+    if not ultimo_id:
+        return '00000000'
     for x in ultimo_id[::-1]:
         d.append(caracteres.index(x))
     for x in range(len(d)):
@@ -34,13 +36,14 @@ def create_property_id():
 
 
 class Property:
-    def __init__(self, nome: str, user_doc: str, cep: str, numero: str, complemento: str):
+    def __init__(self, nome: str, user_doc: str, cep: str, numero: str, complemento: str, exists: bool):
         self.__nome = nome.title()
         self.__user_doc = user_doc
         self.__cep = valida_cep(cep)
         self.__id = create_property_id()
-        insert_property(self.__id, self.__nome, self.__user_doc, self.__cep, numero, complemento)
-        cursor.commit()
+        if not exists:
+            insert_property(self.__id, self.__nome, self.__user_doc, self.__cep, numero, complemento)
+            cursor.commit()
 
     def delete_this_property(self):
         delete_property(self.__id)
