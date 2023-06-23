@@ -1,5 +1,5 @@
 from customtkinter import *
-from server.conSQL import puxa_senha_sql, puxa_user
+from server.conSQL import puxa_senha_sql, puxa_user, select_property, cursor
 from client.Tools import incluir_linha, ler_linha
 from server.Register.User import User
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
@@ -50,6 +50,33 @@ def ctk_entry(frame, text, show=None, text_color=c1, width=320, height=50):
 def spacer(frame):
     spc = CTkLabel(frame, text='')
     return spc
+
+
+def ctk_radio_button(frame, text, command, var=None, value=None, bg_color=bkg, fg_color=c1, text_color=c2,
+                     font='Arial', tamanho_fonte=15):
+    botao = CTkRadioButton(frame, text=text, command=command, variable=var, value=value, bg_color=bg_color, fg_color=fg_color,
+                           text_color=text_color, font=(font, tamanho_fonte))
+    return botao
+
+
+def ctk_frame(frame, fg_color=bkg, width=None, height=None, border_width=2, border_color=c1):
+    fr = CTkFrame(frame)
+    fr.configure(fg_color=fg_color, border_width=border_width,
+                 border_color=border_color)
+    if width:
+        fr.configure(width=width)
+    if height:
+        fr.configure(height=height)
+    return fr
+
+
+def ctk_textbox(frame, width=100, height=100, bg_color=bkg, fg_color=c1, border_color=c3, text_color=c2, scroll_color=c3,
+                font='Arial', tamanho_fonte=12):
+    textbox = CTkTextbox(frame, width=width, height=height,
+                         bg_color=bg_color, fg_color=fg_color, border_color=border_color,
+                         text_color=text_color, scrollbar_button_color=scroll_color,
+                         font=(font, tamanho_fonte))
+    return textbox
 
 
 class App:
@@ -392,13 +419,9 @@ class App:
             frame_top_r.grid(row=0, column=2, sticky='news')
             frame_bottom.grid(row=1, column=0, columnspan=3, sticky='news')
 
-            # - frame_top_l -
-
-            # - frame_top_m -
-
-            # - frame_top_r -
-
-            # - frame_bottom
+            # ----- FRAME_BOTTOM -----
+            estoque = ctk_botao(frame_bottom, 'Gerenciar estoque', command=lambda: self.w_ger_estoque())
+            estoque.grid(row=0, column=0, sticky='news')
 
             self.window.mainloop()
 
@@ -436,6 +459,178 @@ class App:
         self.w_menu_principal()
 
     # ---- Janelas de manipulação de dados ----
+
+    def w_ger_estoque(self):
+        w_ger_estoque = CTk()
+        w_ger_estoque.config(background=bkg)
+        w_ger_estoque.title('Gerenciar Estoque')
+        w_ger_estoque.geometry('800x600')
+
+        frame = ctk_frame(w_ger_estoque)
+
+        frame_l = ctk_frame(frame)
+        frame_top_m = ctk_frame(frame)
+        frame_top_r = ctk_frame(frame)
+        frame_top_r.grid_rowconfigure('all', weight=1)
+        frame_top_r.grid_columnconfigure('all', weight=1)
+        frame_bottom = ctk_frame(frame)
+
+        def command_radio_property(id: str):
+            def command_add_prod(lista_prod, mini_frame_stock):
+                def cria_button_predef_prod(lista_pre_def):
+                    def add_prod(nome):
+                        def finaliza_add_prod(nome, entry_stock):
+                            value = entry_stock.get()
+                            from server.conSQL import alter_propertys
+                            alter_propertys(id=id, type_prod=nome, value_prod=value)
+                            cursor.commit()
+                            mini_frame = limpa_mini_frame(frame)
+                            txt_confirmacao = ctk_label(mini_frame, f'Inseridos {value}t de {nome}')
+                            txt_confirmacao.grid(row=0, column=0, sticky='news')
+
+                        frame = limpa_mini_frame(mini_frame_stock)
+                        txt = ctk_label(frame, f'Insira uma quantidade em Toneladas\n'
+                                               f'   do seu estoque para {nome}')
+                        txt.grid(row=0, column=0, pady=2, columnspan=2)
+                        spc = spacer(frame)
+                        spc.grid(row=1, column=0, pady=10, columnspan=2)
+                        entry_stock = ctk_entry(frame, text='Estoque em Toneladas', width=120, height=30)
+                        entry_stock.grid(row=2, column=0)
+
+                        apply = ctk_botao(frame, 'Aplicar', command=lambda: finaliza_add_prod(nome, entry_stock),
+                                          width=90, height=20)
+                        apply.grid(row=2, column=1)
+
+                    def botao_predef(predef):
+                        botao = ctk_botao(frame_stock, text=predef,
+                                          command=lambda: add_prod(predef), width=120, height=30)
+                        return botao
+
+                    lista_nome_prod = []
+                    for prod in lista_prod:
+                        x = prod.name
+                        lista_nome_prod.append(x)
+
+                    i = 2
+                    c = 0
+                    for predef in lista_pre_def:
+                        if lista_nome_prod.__contains__(predef):
+                            pass
+                        else:
+                            predef = predef.removeprefix('T_').lower()
+                            predef = predef.title()
+                            vars()[predef] = botao_predef(predef)
+                            if c < 3:
+                                vars()[predef].grid(row=i, column=c, padx=2, pady=2)
+                                c += 1
+                            else:
+                                i += 1
+                                vars()[predef].grid(row=i, column=0, padx=2, pady=2)
+                                c = 1
+
+                    add_novo_prod = ctk_botao(frame_stock, 'Novo Tipo',
+                                              command='', width=120, height=30)
+                    add_novo_prod.grid(row=i, column=c, padx=2, pady=2)
+
+                frame_stock = limpa_mini_frame(mini_frame_stock)
+                txt_a = ctk_label(frame_stock, 'Escolha um das pré-definições ou\n'
+                                               '    crie uma nova categoria: ')
+                txt_a.grid(row=0, column=0, columnspan=3, pady=3)
+                spc = spacer(frame_stock)
+                spc.grid(row=1, column=0, columnspan=3, pady=10)
+
+                pre_def = ['T_MILHO', 'T_CAFE', 'T_TOMATE', 'T_SOJA']
+                cria_button_predef_prod(pre_def)
+
+            def command_radio_products(prod):
+                txt = ctk_label(frame_top_r, text=f'{prod.name}')
+                txt.grid(row=0, column=0, columnspan=2)
+                spc = spacer(frame_top_r)
+                spc.grid(row=1, column=0, columnspan=2)
+                entry_add = ctk_entry(frame_top_r, text='Adicionar ao estoque')
+                entry_add.grid(row=2, column=0)
+                button_add = ctk_botao(frame_top_r, text='Adicionar', command='')
+                button_add.grid(row=2, column=1)
+                entry_remove = ctk_entry(frame_top_r, text='Remover ao estoque')
+                entry_remove.grid(row=3, column=0)
+                button_remove = ctk_botao(frame_top_r, text='Remover', command='')
+                button_remove.grid(row=3, column=1)
+                entry_new_stock = ctk_entry(frame_top_r, text='Novo Estoque')
+                entry_new_stock.grid(row=4, column=0)
+                button_new_stock = ctk_botao(frame_top_r, text='Alterar Estoque', command='')
+                button_new_stock.grid(row=4, column=1)
+
+            def botao_radio_products(prod):
+                b = ctk_radio_button(frame_top_m, text=str(prod),
+                                     command=lambda: command_radio_products(prod))
+                return b
+
+            lista_prod = busca_prod(id)
+            if len(lista_prod) > 0:
+                i = 0
+                for prod in lista_prod:
+                    prodx = (str(prod.name)).removeprefix('T_')
+                    vars()[prodx] = botao_radio_products(prod)
+                    vars()[prodx].grid(row=i, column=0, pady=2)
+                    i += 1
+                adicionar_prod = ctk_botao(frame_top_m, text='Adicionar Produto',
+                                           command=lambda: command_add_prod(lista_prod, frame_top_r),
+                                           width=180, height=40)
+                adicionar_prod.grid(row=i, column=0, pady=2)
+            else:
+                adicionar_prod = ctk_botao(frame_top_m, text='Adicionar Produto',
+                                           command=lambda: command_add_prod(lista_prod, frame_top_r),
+                                           width=180, height=40)
+                adicionar_prod.grid(row=0, column=0, pady=2)
+
+        def limpa_mini_frame(xy):
+            xy.destroy()
+            Fr = ctk_frame(frame)
+            Fr.grid(row=0, column=2, sticky='news')
+            Fr.grid_rowconfigure('all', weight=1)
+            Fr.grid_columnconfigure('all', weight=1)
+            return Fr
+
+        def busca_prod(id: str):
+            df = select_property(id)
+            lista_prod = []
+            for i in range(len(df.axes[1])):
+                if i > 5:
+                    if df[df.axes[1][i]][0] != 0:
+                        lista_prod.append(df[df.axes[1][i]])
+            return lista_prod
+
+        lista_propertys = self.__user.get_propertys
+        i = 0
+        for prop in lista_propertys:
+            id = prop[0]
+            nome = prop[1]
+            vars()[nome] = ctk_radio_button(frame_l, text=str(nome),
+                                            command=lambda: command_radio_property(id))
+            vars()[nome].grid(row=i, column=0)
+            i += 1
+
+
+        # ---- Frames ----
+        w_ger_estoque.grid_rowconfigure(0, weight=1)
+        w_ger_estoque.grid_columnconfigure(0, weight=1)
+
+        frame.grid(row=0, column=0, sticky='news', padx=20, pady=20)
+
+        frame_l.grid(row=0, column=0, padx=5, sticky='news')
+        frame_top_m.grid(row=0, column=1, sticky='news')
+
+        frame_top_r.grid(row=0, column=2, padx=5, sticky='news')
+
+        frame_bottom.grid(row=1, column=0, columnspan=3, sticky='news', padx=5)
+        frame.grid_rowconfigure(0, weight=1)
+        frame.grid_rowconfigure(1, weight=1)
+        frame.grid_columnconfigure(0, weight=1)
+        frame.grid_columnconfigure(1, weight=1)
+        frame.grid_columnconfigure(2, weight=1)
+
+
+        w_ger_estoque.mainloop()
 
     def w_cadastro_de_propriedade(self):
         self.limpa_tela()
@@ -570,6 +765,4 @@ class App:
 
 
 
-
 app2 = App()
-app2.w_inicio()

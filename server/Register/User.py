@@ -1,7 +1,7 @@
 from server.Register.Doc import valida_doc
 from server.Register.Property import Property
 from server.Tools import f_nome, f_email, f_senha, f_telefone, format_telefone
-from server.conSQL import insert_user, cursor, puxa_propertys_id
+from server.conSQL import insert_user, cursor, puxa_propertys
 
 
 class User:
@@ -55,7 +55,15 @@ class User:
         return self.__doc
 
     def at_lista_propertys(self) -> None:
-        self.__lista_propertys = puxa_propertys_id(user_doc=self.__doc)
+        df = puxa_propertys(user_doc=self.__doc)
+        lista_propertys = []
+        rows = df.iterrows()
+        for index, property in rows:
+            lista_temp = []
+            lista_temp.append(property['ID'])
+            lista_temp.append(property['NOME'])
+            lista_propertys.append(lista_temp)
+        self.__lista_propertys = lista_propertys
 
     @property
     def get_propertys(self) -> list:

@@ -94,25 +94,11 @@ def puxa_relatorio_mensal(id: str, prod: str, geral: bool) -> list:
     relatorio = []
     if geral:
         x = pd.read_sql(f"""SELECT * FROM Relatorios_mensais WHERE ID = '{id}';""", conexao)
-        for i in range(len(x)):
-            y = i + 2
-            mes = []
-            mes_ano = x[2][i]
-            prod = x[y][i]
-            mes.append(mes_ano)
-            mes.append(prod)
-            relatorio.append(mes)
 
-    x = pd.read_sql(f"""SELECT MES, {prod} FROM Relatorios_mensais WHERE ID = '{id}';""", conexao)
+    else:
+        x = pd.read_sql(f"""SELECT MES, {prod} FROM Relatorios_mensais WHERE ID = '{id}';""", conexao)
 
-    for i in range(len(x)):
-        mes = []
-        mes_ano = x.MES[i]
-        prod = x[f"'{prod}'"][i]
-        mes.append(mes_ano)
-        mes.append(prod)
-        relatorio.append(mes)
-    return relatorio
+    return x
 
 
 def puxa_user(email: str, senha: str):
@@ -120,6 +106,10 @@ def puxa_user(email: str, senha: str):
     x = pd.read_sql(f"""SELECT * FROM Users_ WHERE EMAIL = '{email}' AND PASSWORD = '{senha}';""", conexao)
     return x.DOC[0], x.NOME[0], x.EMAIL[0], x.PASSWORD[0], x.TELEFONE[0], x.TIPO_PESSOA[0]
 
+
+def select_property(id: str):
+    x = pd.read_sql(f"""SELECT * FROM Propertys_ WHERE ID = '{id}';""", conexao)
+    return x
 
 def puxa_propertys(user_doc: str) -> iter:
     x = pd.read_sql(f"""SELECT * FROM Propertys_ WHERE USER_DOC = '{user_doc}';""", conexao)
@@ -156,3 +146,34 @@ def puxa_relatorio_mensal_user(user_doc: str, prod: str, geral: bool) -> iter:
                         WHERE P.USER_DOC = {user_doc}
                         GROUP BY P.USER_DOC, R.MES;""", conexao)
     return x
+
+
+def alter_propertys(id:str, type_prod: str = None, value_prod=None, nome: str = None, cep: str = None, num: str = None,
+                    complemento: str = None):
+    command = 'UPDATE Propertys_ SET'
+
+    if type_prod:
+        if type_prod.lower().find('milho') != -1:
+            type_prod = 'T_MILHO'
+        elif type_prod.lower().find('cafe') != -1:
+            type_prod = 'T_CAFE'
+        elif type_prod.lower().find('tomate') != -1:
+            type_prod = 'T_TOMATE'
+        elif type_prod.lower().find('soja') != -1:
+            type_prod = 'T_SOJA'
+        c = f"""{type_prod} = {int(value_prod)}"""
+        command = f'{command} {c}'
+    if nome:
+        c = f"""NOME = '{nome}'"""
+        command = f'{command} {c}'
+    if cep:
+        c = f"""CEP = '{cep}'"""
+        command = f'{command} {c}'
+    if num:
+        c = f"""NUMERO = '{num}'"""
+        command = f'{command} {c}'
+    if complemento:
+        c = f"""COMPLEMENTO = '{complemento}'"""
+        command = f'{command} {c}'
+    command = f"{command} WHERE ID = '{id}';"
+    cursor.execute(command)

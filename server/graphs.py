@@ -21,7 +21,7 @@ def graph_linha_temporal_estoque(typ: str, key: str, ax, nome, cor, bkg):
         else:
             raise ValueError('Verifique o nome de prod em graph_linha_temporal_estoque')
 
-        # -- Tipo de Estoque Geral/Simples --
+        # -- Tipo de Estoque User/ID --
     if typ == 'user':
         df = puxa_relatorio_mensal_user(key, name_sql, stock_geral)
     elif typ == 'id':
@@ -41,7 +41,7 @@ def graph_linha_temporal_estoque(typ: str, key: str, ax, nome, cor, bkg):
                     graph = x.plot(kind='line', ax=ax, color=cor, marker='o', fontsize=15, legend=True)
                     graph.legend(facecolor=bkg, frameon=False, labelcolor='#FFFFFF', fontsize=15)
                 except:
-                    sem_estoque = True
+                    pass
 
     else:
         df = df[['MES', name_sql]].groupby('MES').sum()
